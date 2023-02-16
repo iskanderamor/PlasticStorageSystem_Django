@@ -1,0 +1,168 @@
+{% extends 'base.html' %} {% load static %} {% load humanize %} {% block pageContent %}
+<section class="py-4">
+    <div class="container">
+        <h3 class="fw-bolder text-center">تقرير سّلع المزوّدين</h3>
+        <center>
+            <hr class="bg-primary opacity-100" style="height:3px" width="5%">
+        </center>
+        <div class="card rounded-0 mb-3">
+            <div class="card-header py-1">
+                <div class="card-title mb-0">تصفية التقرير</div>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{% url 'employee-report-product' %}">
+                    <div class="row align-items-end">
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                            <label for="date" class="control-label">اختر التاريخ</label>
+                            <div class="mb-3">
+                                <label for="date" class="control-label">:من</label>
+                                <input class="form-control form-control-sm rounded-0" id="date_from" name="date_from"
+                                    type="date" value="{{ filter_context.date_from }}" />
+                            
+                                <label for="date" class="control-label">:إلى</label>
+                                <input class="form-control form-control-sm rounded-0" id="date_to" name="date_to"
+                                    value="{{ filter_context.date_to }}" type="date" />
+                            </div>
+
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                            <div class="mb-3">
+                                <button class="btn btn-sm btn-primary bg-gradient bg-primary rounded-0"><i class="fa fa-filter"></i>تصفية</button>
+                                <button onclick="clearFilters()"
+                                class="btn btn-sm btn-danger bg-gradient bg-danger rounded-0">حذف</button>
+                                <button class="btn btn-sm btn-success bg-gradient bg-success rounded-0" type="button" id="print"><i class="fa fa-print"></i>نسخة</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="card rounded-0 shadow">
+            <div class="card-body">
+                <div class="container-fluid">
+                    <div class="table-responsive">
+                    <table class="table table-bordered table-striped" id="laundry-tbl">
+                        <colgroup>
+                            <col width="5%">
+                            <col width="20%">
+                            <col width="25%">
+                            <col width="30%">
+                            <col width="20%">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th class="text-center">#</th>
+                                <th class="text-center">تاريخ الإضافة</th>
+                                <th class="p-1 text-center">نوع السّلعة
+                                    <div class="mb-1 arrow-up" id="date_up"></div>
+                                    <div class="arrow-down" id="date_down"></div>
+                                </th>
+                                <th class="p-1 text-center">السعر/كغ</th>
+                                <th class="p-1 text-center">مجموع (كغ)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bill in bills %}
+                            <tr>
+                                <td class="text-center">{{ forloop.counter }}</td>
+                                <td>{{ bill.bill.date_added|date:"Y-m-d h:i"}}</td>
+                                <td>
+                                    <div class="lh-1">
+                                        <div>{{ bill.product_type}}</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="lh-1">
+                                        <div>{{ bill.product_type.price|floatformat|intcomma}}</div>
+                                    </div>
+                                </td>
+                                <td class="text-end">{{bill.weight|floatformat}}</td>
+                            </tr>
+                            {% endfor %} {% if not bills %}
+
+                            {% endif %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="4" class="text-center">إجمالي الشراءات</th>
+                                <th class="text-end fw-bolder">{{product_weight_total|floatformat}}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<noscript id="print-header">
+    <div>
+        <style>
+            html {
+                min-height: unset !important;
+            }
+        </style>
+        <div class="d-flex w-100">
+            <div class="col-2 text-center">
+                <img src="{{system_host}}{% static 'assets/default/img/plastic_icon.png' %}"
+                    style="width:4em;height:4em;object-fit:cover;object-position:center center" alt=""
+                    class="rounded-circle p-0 img-thumbnail">
+            </div>
+            <div class="col-8">
+                <div class="lh-1">
+                    <h4 class="text-center mb-0 fw-bolder">{{system_name}}</h4>
+                    <h5 class="text-center mb-0 fw-bolder">تقرير السّلع اليومية</h5>
+                    <div class="text-center mb-0 fw-bolder">اعتبارًا من</div>
+                    <h5 class="text-center mb-0 fw-bolder">{{date_from|date:"F d, Y"}}</h5>
+                </div>
+            </div>
+        </div>
+        <hr>
+    </div>
+</noscript> {% endblock pageContent %} {% block ScriptBlock %}
+<script>
+    $(function () {
+        $('#laundry-tbl').find('td, th').addClass('px-2 py-1 align-middle')
+        $('#filter-form').submit(function (e) {
+            e.preventDefault()
+            location.href = '{% url "product-report" %}/' + $('#date').val()
+        })
+
+        $('#print').click(function () {
+            console.log('print')
+            var h = $('head').clone()
+            h.find('title').text("Daily Transaction Report - Print Details")
+            h.find('link').each(function () {
+                if ($(this).is('[href]')) {
+                    $(this).attr('href', "{{system_host}}" + $(this).attr('href'))
+                }
+            })
+            h.find('script').each(function () {
+                if ($(this).is('[src]')) {
+                    $(this).attr('src', "{{system_host}}" + $(this).attr('src'))
+                }
+            })
+            var ph = $($('noscript#print-header').html()).clone()
+            var el = "";
+            el += $('#laundry-tbl').clone()[0].outerHTML
+
+
+            var nw = window.open("", "_blank", "width=" + ($(window).width() * .8) + ", left=" + ($(window).width() * .1) + "height=" + ($(window).height() * .8) + ", top=" + ($(window).height() * .1) + "")
+            nw.document.querySelector('head').innerHTML = h.html()
+            nw.document.querySelector('body').innerHTML = ph[0].outerHTML
+            nw.document.querySelector('body').innerHTML += el
+            nw.document.close()
+            start_loader()
+            setTimeout(() => {
+                nw.print()
+                setTimeout(() => {
+                    nw.close()
+                    end_loader()
+                }, 200)
+            }, 300)
+        })
+    })
+</script>
+
+<script src="{% static 'assets/js/sorting.js' %}"></script>
+{% endblock ScriptBlock %}

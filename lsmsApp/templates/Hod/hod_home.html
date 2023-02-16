@@ -1,0 +1,435 @@
+{% extends "base.html" %} {% load humanize %} {% load customfilter %} {% block pageContent %}
+
+<!--Section: Content-->
+<section class="">
+    <h2 class="fw-bolder">مرحبا, {{user.first_name}}&nbsp;{{user.last_name}}!</h2>
+    <hr>
+    <div class="row justify-content-center">
+
+        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 px-1 pb-2">
+            <div class="card card-default rounded-0 shadow bg-gradient bg-info bg-opacity-75 text-light">
+                <div class="card-body">
+                    <div class="container-fluid">
+                        <div class="row mx-0 w-100 align-items-center">
+                            <div class="col-3">
+                                <i class="fs-1 text-light fa fa-users"></i>
+                            </div>
+                            <div class="col-9">
+                                <h1 class="text-end">{{employees}}</h2>
+                            </div>
+                            <div class="col-12 text-end"><b>المزوّدين</b></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 px-1 pb-2">
+            <div class="card card-default rounded-0 shadow bg-gradient bg-primary bg-opacity-75 text-light">
+                <div class="card-body">
+                    <div class="container-fluid">
+                        <div class="row mx-0 w-100 align-items-center">
+                            <div class="col-3">
+                                <i class="fs-1 text-light fa fa-users"></i>
+                            </div>
+                            <div class="col-9">
+                                <h1 class="text-end">{{collecteurs}}</h2>
+                            </div>
+                            <div class="col-12 text-end"><b>الحرفاء</b></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 px-1 pb-2">
+            <div class="card card-default rounded-0 shadow bg-gradient bg-dark bg-opacity-75 text-light">
+                <div class="card-body">
+                    <div class="container-fluid">
+                        <div class="row mx-0 w-100 align-items-center">
+                            <div class="col-3">
+                                <i class="fs-1 text-light fa fa-soap"></i>
+                            </div>
+                            <div class="col-9">
+                                <h1 class="text-end">{{products|intcomma}}</h2>
+                            </div>
+                            <div class="col-12 text-end"><b>السّلعة</b></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 px-1 pb-2">
+            <div class="card card-default rounded-0 shadow bg-gradient bg-success bg-opacity-75 text-light">
+                <div class="card-body">
+                    <div class="container-fluid">
+                        <div class="row mx-0 w-100 align-items-center">
+                            <div class="col-3">
+                                <i class="fs-1 text-light fa fa-file-invoice"></i>
+                            </div>
+                            <div class="col-9">
+                                <h1 class="text-end">{{todays_invoice|intcomma}}</h2>
+                            </div>
+                            <div class="col-12 text-end"><b>الشّراءات اليومية</b></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 px-1 pb-2">
+            <div class="card card-default rounded-0 shadow bg-gradient bg-warning bg-opacity-75 text-light">
+                <div class="card-body">
+                    <div class="container-fluid">
+                        <div class="row mx-0 w-100 align-items-center">
+                            <div class="col-3">
+                                <i class="fs-1 text-light fa fa-coins"></i>
+                            </div>
+                            <div class="col-9">
+                                <h1 class="text-end">{{tot_amount|floatformat|intcomma}}</h2>
+                            </div>
+                            <div class="col-12 text-end"><b>المبلغ المدفوع</b></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+</section> <br><br>
+
+<div class="row">
+    <div class="col-md-12 col-lg-6">
+        <div class="card card-chart">
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col-6">
+                        <h5 class="card-title">كل السّلع</h5>
+                    </div>
+
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="bg-white">
+                    <canvas id="myChart" width="400" height="300"></canvas>
+                    <form method="GET" action="{% url 'hod_home' %}">
+                        إلى     
+                        <input id="date_start" name="date_start" type="date" value="{{ filter_context.date_start}}" />
+                        من
+                        <input id="date_end" name="date_end" value="{{ filter_context.date_end }}" type="date" />
+                        <button class="btn btn-sm btn-primary bg-gradient bg-primary rounded-0"><i
+                                class="fa fa-filter"></i>تصفية</button>
+                        <button onclick="clearFilters()"
+                            class="btn btn-sm btn-danger bg-gradient bg-danger rounded-0">حذف</button>
+                    </form>
+                    <script>
+                        var ctx = document.getElementById('myChart').getContext('2d');
+                        var myChart = new Chart(ctx, {
+                            type: 'pie',
+                            data: {
+                                labels: {{ product_name_list| safe}},
+                        datasets: [{
+                            label: 'السّلع',
+                            data: [{% for data in product_total_list %} '{{data}}', {% endfor %}],
+                            backgroundColor: [
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(25, 159, 64, 1)',
+                                'rgba(211, 99, 12, 1)',
+                                'rgba(234, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(34, 142, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)',
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                                borderColor: [
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(25, 159, 64, 1)',
+                                    'rgba(211, 99, 12, 1)',
+                                    'rgba(234, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(34, 142, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(255, 159, 64, 1)',
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(255, 159, 64, 1)'
+                                ],
+                                    borderWidth: 1
+                          }]
+                      },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+
+                        }
+                  });
+                    </script>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+    <div class="col-md-12 col-lg-6">
+        <div class="card card-chart">
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col-6">
+                        <h5 class="card-title">التمويل اليومي</h5>
+                    </div>
+
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="bg-white">
+                    <canvas id="myChart1" width="400" height="300"></canvas>
+                    <script>
+                        var ctx = document.getElementById('myChart1').getContext('2d');
+                        var myChart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: {{ employee_name_list| safe}} ,
+                        datasets: [{
+                            label: 'التمويل',
+                            data: [{% for data in employee_expenses_list %} '{{ data }}', {% endfor %}],
+                            backgroundColor: [
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(25, 159, 64, 1)',
+                                'rgba(211, 99, 12, 1)',
+                                'rgba(234, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(34, 142, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)',
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                                borderColor: [
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(25, 159, 64, 1)',
+                                    'rgba(211, 99, 12, 1)',
+                                    'rgba(234, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(34, 142, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(255, 159, 64, 1)',
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(255, 159, 64, 1)'
+                                ],
+                                    borderWidth: 1
+                               
+
+                          }]
+                      },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                  });
+                    </script>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12 col-lg-6">
+        <div class="card card-chart">
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col-6">
+                        <h5 class="card-title">الباقي</h5>
+                    </div>
+
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="bg-white">
+                    <canvas id="myChart2" width="400" height="300"></canvas>
+                    <script>
+                        var ctx = document.getElementById('myChart2').getContext('2d');
+                        var myChart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: {{ employee_name_list| safe}},
+                        datasets: [{
+                            label: 'الباقي',
+                            data: [{% for data in employee_rest_list %} '{{data}}', {% endfor %}],
+                            backgroundColor: [
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(25, 159, 64, 1)',
+                                'rgba(211, 99, 12, 1)',
+                                'rgba(234, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(34, 142, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)',
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                                borderColor: [
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(25, 159, 64, 1)',
+                                    'rgba(211, 99, 12, 1)',
+                                    'rgba(234, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(34, 142, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(255, 159, 64, 1)',
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(255, 159, 64, 1)'
+                                ],
+                                    borderWidth: 1
+                          }]
+                      },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                  });
+                    </script>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12 col-lg-6">
+        <div class="card card-chart">
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col-6">
+                        <h5 class="card-title">التقرير الشهري</h5>
+                    </div>
+
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="bg-white">
+                    <canvas id="myChart3" width="400" height="300"></canvas>
+                    <script>
+                        var ctx = document.getElementById('myChart3').getContext('2d');
+
+                        var myChart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: {{ employee_name_list| safe}},
+                        datasets: [{
+                            label: 'التقرير الشهري',
+                            data: [{% for data in employee_month_report_list %} '{{data}}', {% endfor %}],
+                            backgroundColor: [
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(25, 159, 64, 1)',
+                                'rgba(211, 99, 12, 1)',
+                                'rgba(234, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(34, 142, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)',
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                                borderColor: [
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(25, 159, 64, 1)',
+                                    'rgba(211, 99, 12, 1)',
+                                    'rgba(234, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(34, 142, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(255, 159, 64, 1)',
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(255, 159, 64, 1)'
+                                ],
+                                    borderWidth: 1
+                          }]
+                      },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                  });
+                    </script>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock pageContent %} {% block ScriptBlock %}
+<script>
+    function clearFilters() {
+        document.getElementById("date_start").value = "";
+        document.getElementById("date_end").value = "";
+    }
+    weight_up = document.getElementById("weight_up");
+    weight_down = document.getElementById("weight_down");
+    date_added_up = document.getElementById("date_added_up");
+    date_added_down = document.getElementById("date_added_down");
+    weight_up_form = document.getElementById("weight_up_form");
+    weight_down_form = document.getElementById("weight_down_form");
+    date_added_up_form = document.getElementById("date_added_up_form");
+    date_added_down_form = document.getElementById("date_added_down_form");
+    weight_up.addEventListener("click", (e) => weight_up_form.submit());
+    weight_down.addEventListener("click", (e) => weight_down_form.submit());
+    date_added_up.addEventListener("click", (e) => date_added_up_form.submit());
+    date_added_down.addEventListener("click", (e) => date_added_down_form.submit());
+
+</script>
+
+{% endblock ScriptBlock %}
